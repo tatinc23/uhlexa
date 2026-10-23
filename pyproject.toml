@@ -1,0 +1,52 @@
+[project]
+name = "uhlexa"
+version = "0.1.0"
+description = "Uhlexa: simulated Alexa+ family agents (FastAPI + Postgres + MCP)"
+readme = "README.md"
+requires-python = ">=3.12,<3.13"
+dependencies = [
+    "fastapi>=0.159",
+    "uvicorn[standard]>=0.54",
+    "sqlalchemy>=2.1.6",
+    "alembic>=1.20",
+    "pydantic>=2.14",
+    "pydantic-settings>=2.16",
+    "psycopg[binary]>=3.3",
+    "httpx>=0.28",
+    "mcp>=2.3,<3",
+    "inkbox==0.7.20",
+]
+
+[dependency-groups]
+dev = [
+    "pytest>=9.1",
+    "ruff>=0.14",
+]
+
+[tool.uv]
+package = false
+# cryptography >=49 ships macOS arm64 wheels only; the dev iMac is Intel (x86_64) and has no Rust toolchain.
+# Transitive via mcp -> pyjwt[crypto]. Drop this once the dev machine is arm64.
+constraint-dependencies = ["cryptography<49"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+pythonpath = ["."]
+addopts = "--import-mode=importlib"
+markers = [
+    "postgres: needs TEST_DATABASE_URL pointing at a Postgres database",
+]
+
+[tool.ruff]
+line-length = 120
+target-version = "py312"
+extend-exclude = [".venv", "migrations/versions"]
+
+[tool.ruff.lint]
+select = ["E", "F", "I", "UP", "B", "SIM"]
+
+[tool.ruff.lint.flake8-bugbear]
+extend-immutable-calls = ["fastapi.Depends", "fastapi.Query", "fastapi.Header", "fastapi.Body", "fastapi.Path"]
+
+[tool.ruff.lint.per-file-ignores]
+"tests/conftest.py" = ["E402"]

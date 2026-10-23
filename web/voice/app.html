@@ -1,0 +1,80 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#0b0d1a">
+  <title>Uhlexa app</title>
+  <link rel="icon" href="data:,">
+  <link rel="stylesheet" href="/voice/voice.css">
+</head>
+<body data-surface="app" class="surface-app">
+  <script>try{var k=new URLSearchParams(location.search).get('kiosk');if(k!==null&&!/^(0|false|off|no)$/i.test(k.trim()))document.body.classList.add('kiosk')}catch(e){}</script>
+  <div id="kiosk-start" class="kiosk-start" role="button" tabindex="0" aria-label="Tap to start">
+    <div class="ring ring-kiosk" data-state="asleep" aria-hidden="true">
+      <span class="ring-glow"></span>
+      <span class="ring-arc"></span>
+      <span class="ring-core"><span class="kiosk-start-text">Tap to start</span></span>
+    </div>
+  </div>
+  <div class="phone">
+    <header class="phone-top">
+      <span class="brand"><span class="brand-mark" aria-hidden="true"></span>Uhlexa</span>
+      <span class="right">
+        <span id="state-pill" class="pill" data-state="asleep">Checking</span>
+        <button id="settings-btn" type="button" class="icon-btn" aria-label="Settings">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="3"></circle><path d="M19.4 15a1.7 1.7 0 0 0 .3 1.8l.1.1a2 2 0 1 1-2.8 2.8l-.1-.1a1.7 1.7 0 0 0-1.8-.3 1.7 1.7 0 0 0-1 1.5V21a2 2 0 1 1-4 0v-.1a1.7 1.7 0 0 0-1.1-1.5 1.7 1.7 0 0 0-1.8.3l-.1.1a2 2 0 1 1-2.8-2.8l.1-.1a1.7 1.7 0 0 0 .3-1.8 1.7 1.7 0 0 0-1.5-1H3a2 2 0 1 1 0-4h.1a1.7 1.7 0 0 0 1.5-1.1 1.7 1.7 0 0 0-.3-1.8l-.1-.1a2 2 0 1 1 2.8-2.8l.1.1a1.7 1.7 0 0 0 1.8.3h0a1.7 1.7 0 0 0 1-1.5V3a2 2 0 1 1 4 0v.1a1.7 1.7 0 0 0 1 1.5h0a1.7 1.7 0 0 0 1.8-.3l.1-.1a2 2 0 1 1 2.8 2.8l-.1.1a1.7 1.7 0 0 0-.3 1.8v0a1.7 1.7 0 0 0 1.5 1H21a2 2 0 1 1 0 4h-.1a1.7 1.7 0 0 0-1.5 1z"></path></svg>
+        </button>
+      </span>
+    </header>
+
+    <div class="statusline" aria-label="Status">
+      <p id="state-caption" class="state-caption" role="status"></p>
+      <p id="state-detail" class="state-detail"></p>
+    </div>
+
+    <div id="ring" class="ring" data-state="asleep" hidden>
+      <span class="ring-glow"></span><span class="ring-arc"></span><span class="ring-core"></span>
+    </div>
+
+    <div id="tray" class="tray" aria-label="Needs you" hidden>
+      <div id="approvals"></div>
+      <div id="browser"></div>
+    </div>
+
+    <div class="phone-body">
+      <section id="pre" class="panel pre" aria-label="Start">
+        <label for="user-select">Who is this?</label>
+        <select id="user-select"></select>
+        <button id="start-btn" type="button" class="btn btn-primary btn-lg" disabled>Start</button>
+        <button id="novoice-btn" type="button" class="btn btn-ghost" hidden>Continue without voice</button>
+        <p id="status-note" class="note" hidden></p>
+      </section>
+      <div id="chat" class="chat" aria-live="polite" aria-relevant="additions" aria-label="Conversation"></div>
+      <p id="start-error" class="error" role="alert" hidden></p>
+    </div>
+
+    <footer id="live" class="composer" hidden>
+      <button id="mic-btn" type="button" class="mic voice-only" aria-pressed="false"><span class="mic-dot" aria-hidden="true"></span><span class="mic-label">Mic muted</span></button>
+      <button id="talk-btn" type="button" class="mic-big voice-only" aria-label="Tap to talk">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="9" y="2" width="6" height="12" rx="3"></rect><path d="M5 11a7 7 0 0 0 14 0"></path><path d="M12 18v4"></path></svg>
+      </button>
+      <button id="audio-btn" type="button" class="btn btn-ghost" hidden>Enable sound</button>
+      <button id="leave-btn" type="button" class="btn btn-ghost">Leave</button>
+    </footer>
+  </div>
+
+  <dialog id="sheet" class="sheet" aria-labelledby="sheet-title">
+    <h2 id="sheet-title">Settings</h2>
+    <p id="who" class="note"></p>
+    <div class="voice-only">
+      <h3>How Uhlexa wakes up</h3>
+      <div id="mode-toggle" class="seg stack" aria-label="How Uhlexa wakes up"></div>
+    </div>
+    <button id="sheet-close" type="button" class="btn btn-primary">Done</button>
+  </dialog>
+
+  <script src="/voice-vendor/livekit-client.umd.min.js"></script>
+  <script src="/voice/voice.js"></script>
+</body>
+</html>

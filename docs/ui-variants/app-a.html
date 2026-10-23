@@ -1,0 +1,572 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#f3eee4">
+  <title>Uhlexa app — A</title>
+  <link rel="icon" href="data:,">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,500;0,9..144,650;1,9..144,520&family=Outfit:wght@400;500;600;700&display=swap">
+  <style>
+/* A — A daylight pantry blotter: paper, copper rules, and her face as a postage stamp.
+   Port: scope every rule under body.surface-app. Drop the PREVIEW ONLY block. */
+:root {
+  --paper: #f3eee4;
+  --sheet: #faf6ee;
+  --ink: #241c16;
+  --muted: #6b5e52;
+  --rule: #e3d8c8;
+  --copper: #a86b3c;
+  --forest: #243f34;
+  --stamp: #9d3b32;
+  --wax: #b8893d;
+  --olive: #5c6b3a;
+  --face: url("../../assets/brand/uhlexa-mark.png");
+  --serif: "Fraunces", "Iowan Old Style", Palatino, Georgia, serif;
+  --sans: "Outfit", "Avenir Next", "Segoe UI", sans-serif;
+  --state: #8a7d70;
+  --lvl: 0.45;
+}
+body[data-state="asleep"] { --state: #8a7d70; }
+body[data-state="idle"] { --state: #243f34; }
+body[data-state="listening"] { --state: #a86b3c; }
+body[data-state="thinking"] { --state: #8a6230; }
+body[data-state="speaking"] { --state: #243f34; }
+body[data-state="working_on_computer"] { --state: #5c6b3a; }
+body[data-state="waiting_for_you"] { --state: #b8893d; }
+body[data-state="needs_your_hands"],
+body[data-state="error"],
+body[data-state="offline"] { --state: #9d3b32; }
+
+*, *::before, *::after { box-sizing: border-box; }
+html, body { margin: 0; }
+html { overflow-x: hidden; }
+body {
+  background: #e7dccb;
+  color: var(--ink);
+  font-family: var(--sans);
+  font-size: 16px;
+  line-height: 1.45;
+  -webkit-font-smoothing: antialiased;
+}
+body.surface-app { color-scheme: light; }
+h2, h3, h4, p, ul, ol { margin: 0; }
+button, select { font: inherit; color: inherit; }
+button { cursor: pointer; }
+:focus-visible { outline: 2px solid var(--forest); outline-offset: 3px; }
+img { max-width: 100%; border: 0; }
+.sr-only {
+  position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px;
+  overflow: hidden; clip: rect(0, 0, 0, 0); white-space: nowrap; border: 0;
+}
+
+.phone {
+  width: min(420px, 100%);
+  margin: 0 auto;
+  min-height: 100svh;
+  background:
+    linear-gradient(180deg, rgba(255,255,255,.35), transparent 90px),
+    var(--paper);
+  display: grid;
+  grid-template-columns: 1fr;
+  grid-template-areas:
+    "top"
+    "ring"
+    "status"
+    "chat"
+    "tray"
+    "pre"
+    "err"
+    "live";
+  align-content: start;
+}
+.phone-body { display: contents; }
+.phone-top { grid-area: top; }
+#pre { grid-area: pre; }
+#ring { grid-area: ring; }
+.statusline { grid-area: status; }
+#chat { grid-area: chat; }
+#tray { grid-area: tray; }
+#start-error { grid-area: err; }
+#live { grid-area: live; }
+
+.phone-top {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 16px 16px 18px;
+  background-image: radial-gradient(circle at 10px 100%, #d9cdb8 4.5px, transparent 5px);
+  background-size: 20px 14px;
+  background-repeat: repeat-x;
+  background-position: left bottom;
+}
+.brand {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  font-family: var(--serif);
+  font-weight: 560;
+  font-style: italic;
+  font-size: 26px;
+  letter-spacing: -0.03em;
+}
+.brand-mark {
+  width: 32px; height: 32px; border-radius: 50%;
+  background: var(--face) center/cover;
+  box-shadow: 0 0 0 1px var(--copper);
+  flex: none;
+}
+.right { display: inline-flex; align-items: center; gap: 8px; }
+.pill {
+  display: inline-flex; align-items: center; min-height: 32px;
+  padding: 4px 8px;
+  border: 1.5px solid var(--state);
+  color: var(--state);
+  background: transparent;
+  font-family: var(--serif);
+  font-size: 12px;
+  font-weight: 650;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  transform: rotate(-2deg);
+}
+.icon-btn {
+  width: 44px; height: 44px; padding: 0;
+  display: grid; place-items: center;
+  border: 1px solid var(--rule);
+  background: var(--sheet);
+  color: var(--ink);
+  border-radius: 4px;
+}
+.icon-btn svg { width: 20px; height: 20px; }
+
+.statusline { padding: 4px 20px 8px; text-align: center; }
+.state-caption {
+  font-family: var(--serif);
+  font-size: 22px;
+  font-weight: 560;
+  font-variation-settings: "SOFT" 40, "opsz" 72;
+  letter-spacing: -0.02em;
+}
+.state-detail { color: var(--muted); font-size: 14px; margin-top: 2px; }
+.state-detail:empty { display: none; }
+
+#ring {
+  width: 176px; height: 176px;
+  margin: 6px auto 2px;
+  position: relative;
+  display: grid;
+  place-items: center;
+}
+.ring-core {
+  width: 124px; height: 124px; border-radius: 50%;
+  background: var(--face) center 30% / 168% no-repeat;
+  box-shadow: inset 0 0 0 4px var(--sheet), 0 0 0 1px var(--copper);
+  position: relative; z-index: 1;
+  transition: transform .2s ease, filter .3s ease;
+}
+.ring-arc {
+  position: absolute; inset: 0; border-radius: 50%;
+  background: repeating-conic-gradient(from 0deg, var(--ink) 0 2.4deg, transparent 2.4deg 11deg);
+  -webkit-mask: radial-gradient(circle, transparent 64%, #000 65.5% 71%, transparent 72.5%);
+  mask: radial-gradient(circle, transparent 64%, #000 65.5% 71%, transparent 72.5%);
+  opacity: .55;
+}
+.ring-glow {
+  position: absolute; inset: 10px; border-radius: 50%;
+  border: 1.5px solid var(--state);
+  transition: border-color .25s ease, transform .25s ease;
+}
+#ring[data-state="asleep"] .ring-core { filter: grayscale(.55) contrast(.95); opacity: .88; }
+#ring[data-state="listening"] .ring-glow { animation: uh-spin 14s linear infinite; border-style: dashed; }
+#ring[data-state="thinking"] .ring-arc { animation: uh-fade 1.4s ease-in-out infinite; }
+#ring[data-state="speaking"] .ring-core { transform: scale(calc(1 + var(--lvl) * .1)); }
+#ring[data-state="working_on_computer"] .ring-glow { border-radius: 14px; inset: 22px; border-width: 2px; }
+#ring[data-state="waiting_for_you"] .ring-glow { border-width: 6px; }
+#ring[data-state="needs_your_hands"] { animation: uh-shake .5s ease-in-out 3; }
+#ring[data-state="error"] .ring-core,
+#ring[data-state="offline"] .ring-core { filter: grayscale(1); }
+@keyframes uh-spin { to { transform: rotate(360deg); } }
+@keyframes uh-fade { 50% { opacity: .15; } }
+@keyframes uh-shake {
+  25% { transform: rotate(-2.5deg); }
+  75% { transform: rotate(2.5deg); }
+}
+
+#tray { display: flex; flex-direction: column; gap: 12px; padding: 8px 16px 4px; }
+.card {
+  background: var(--sheet);
+  border: 1px solid var(--rule);
+  padding: 14px 14px 12px;
+  position: relative;
+}
+.card.approval.is-pending { border-left: 4px solid var(--stamp); }
+.card.browser.status-running { border-left: 4px solid var(--olive); }
+.card.browser.status-needs_takeover,
+.task-group.status-needs_takeover { border-left: 4px solid var(--stamp); }
+.card.browser.status-failed,
+.card.browser.status-cancelled,
+.card.browser.status-unavailable { border-left: 4px solid var(--muted); }
+.card.thread { border-style: dashed; }
+.card-head { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; }
+.card-title {
+  font-family: var(--serif);
+  font-size: 22px;
+  font-weight: 560;
+  letter-spacing: -0.02em;
+  flex: 1 1 100%;
+}
+.card-head .chip, .card-head .chip-row { order: -1; }
+.card-meta, .card-note, .card-hint, .card-error { font-size: 14px; margin-top: 6px; }
+.card-note { color: var(--ink); }
+.card-meta, .card-hint { color: var(--muted); }
+.card-hint { font-family: var(--serif); font-style: italic; }
+.card-error, .error { color: var(--stamp); font-size: 14px; }
+.url { font-family: ui-monospace, "SFMono-Regular", Menlo, Consolas, monospace; font-size: 12px; overflow-wrap: anywhere; }
+.item-list { margin: 8px 0 0; padding-left: 18px; }
+.item-list li { margin: 2px 0; }
+.card-actions { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 12px; }
+.card-actions .btn { flex: 1 1 120px; }
+.shot {
+  display: block; width: 100%; height: 132px; object-fit: cover;
+  margin-top: 10px; border: 1px solid var(--rule);
+}
+.steps { list-style: none; padding: 0; margin: 10px 0 0; display: flex; flex-direction: column; gap: 6px; }
+.steps li { position: relative; padding-left: 16px; font-size: 14px; }
+.steps li::before {
+  content: ""; position: absolute; left: 0; top: .5em;
+  width: 7px; height: 7px; border-radius: 50%; background: var(--forest);
+}
+.steps .is-bad::before { background: var(--stamp); }
+.steps .is-ok::before { background: var(--forest); }
+
+.chip-row { display: flex; flex-wrap: wrap; gap: 6px; justify-content: flex-end; }
+.chip {
+  display: inline-flex; align-items: center; min-height: 26px;
+  padding: 2px 7px;
+  border: 1px solid currentColor;
+  font-size: 11px; letter-spacing: .12em; text-transform: uppercase;
+  font-weight: 600; white-space: nowrap;
+}
+.chip-amber { color: var(--wax); }
+.chip-ok { color: var(--forest); }
+.chip-grey { color: var(--muted); }
+.chip-violet { color: var(--olive); }
+.chip-bad { color: var(--stamp); }
+
+.btn {
+  display: inline-flex; align-items: center; justify-content: center;
+  min-height: 48px; padding: 10px 16px;
+  border: 1.5px solid transparent; border-radius: 3px;
+  font-weight: 600; letter-spacing: .02em; text-decoration: none;
+  font-size: 16px;
+}
+.btn:disabled { opacity: .45; }
+.btn-primary { background: var(--forest); color: #f6f1e6; }
+.btn-ghost { background: transparent; border-color: var(--ink); color: var(--ink); }
+.btn-amber { background: var(--wax); color: #241c16; }
+.btn-lg { min-height: 52px; width: 100%; font-size: 17px; }
+a.btn-amber { width: 100%; }
+
+#pre { display: flex; flex-direction: column; gap: 8px; padding: 4px 16px 12px; }
+#pre label { font-size: 13px; letter-spacing: .08em; text-transform: uppercase; color: var(--muted); }
+#user-select {
+  width: 100%; min-height: 48px; padding: 0 36px 0 12px;
+  border: 1px solid var(--ink); border-radius: 3px;
+  background-color: var(--sheet);
+  background-image: linear-gradient(45deg, transparent 50%, var(--ink) 50%), linear-gradient(135deg, var(--ink) 50%, transparent 50%);
+  background-position: calc(100% - 18px) 22px, calc(100% - 12px) 22px;
+  background-size: 6px 6px, 6px 6px;
+  background-repeat: no-repeat;
+  appearance: none;
+}
+.note { color: var(--muted); font-size: 14px; }
+#start-error { padding: 0 16px 8px; }
+
+.chat { padding: 4px 16px 12px; }
+.cap { padding: 6px 0 8px 12px; border-left: 2px solid var(--rule); margin: 0 0 8px; }
+.cap-heard { border-left-color: var(--copper); }
+.cap-said { border-left-color: var(--forest); }
+.cap-label { font-weight: 650; }
+.cap-text { font-family: var(--serif); font-size: 18px; font-weight: 500; line-height: 1.35; letter-spacing: -0.01em; }
+.interim { opacity: .55; }
+
+#live {
+  display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between;
+  gap: 8px;
+  padding: 10px 16px 22px;
+}
+#audio-btn { flex: 1 0 100%; order: -1; }
+.mic {
+  display: inline-flex; align-items: center; gap: 8px;
+  min-height: 44px; padding: 0 10px;
+  border: 1px solid var(--ink); border-radius: 3px; background: transparent;
+}
+.mic-dot { width: 8px; height: 8px; border-radius: 50%; background: var(--muted); }
+.mic.is-on { background: var(--forest); color: #f6f1e6; border-color: var(--forest); }
+.mic.is-on .mic-dot { background: #e7c56a; }
+.mic-label { font-size: 14px; }
+.mic-big {
+  width: 68px; height: 68px; border-radius: 50%;
+  border: none; background: var(--forest); color: #f6f1e6;
+  display: grid; place-items: center;
+  box-shadow: 0 8px 0 #1a2e26;
+}
+.mic-big:active { transform: translateY(2px); box-shadow: 0 6px 0 #1a2e26; }
+.mic-big svg { width: 26px; height: 26px; }
+body.no-voice .voice-only { display: none !important; }
+body.is-live #pre { display: none; }
+#ring.has-video .ring-core { opacity: .3; }
+
+#sheet {
+  border: none;
+  background: var(--sheet);
+  color: var(--ink);
+  width: min(420px, calc(100% - 24px));
+  margin: auto auto 0;
+  padding: 20px 16px 24px;
+  border-radius: 6px 6px 0 0;
+  box-shadow: 0 -12px 40px rgba(36, 28, 22, .18);
+}
+#sheet::backdrop { background: rgba(36, 28, 22, .46); }
+#sheet h2 { font-family: var(--serif); font-weight: 560; font-size: 28px; }
+#sheet h3 { font-size: 13px; letter-spacing: .08em; text-transform: uppercase; color: var(--muted); margin: 16px 0 8px; font-weight: 600; }
+#who { margin-top: 4px; }
+.seg { display: flex; flex-direction: column; gap: 8px; }
+.seg-btn {
+  min-height: 48px; text-align: left; padding: 12px 14px;
+  border: 1px solid var(--rule); border-radius: 3px;
+  background: var(--paper); color: var(--ink);
+}
+.seg-btn.is-on { background: var(--forest); color: #f6f1e6; border-color: var(--forest); }
+#sheet-close { width: 100%; margin-top: 16px; }
+
+.empty { color: var(--muted); font-size: 14px; padding: 8px 0; }
+.task-group { margin-top: 14px; padding-top: 8px; border-top: 1px solid var(--rule); }
+.group-title { display: flex; justify-content: space-between; align-items: baseline; font-size: 13px; letter-spacing: .08em; text-transform: uppercase; }
+.count { font-variant-numeric: tabular-nums; color: var(--muted); }
+.prov { display: flex; align-items: center; gap: 8px; min-height: 32px; font-size: 14px; }
+.prov .dot, .dot { width: 8px; height: 8px; border-radius: 50%; background: var(--state); flex: none; }
+.wave { display: inline-flex; align-items: flex-end; gap: 2px; height: 16px; }
+.bar { display: block; width: 3px; height: 40%; background: var(--state); }
+.prov-ok .dot { background: var(--forest); }
+.prov-amber .dot { background: var(--wax); }
+.prov-grey .dot { background: var(--muted); }
+
+/* ===== PREVIEW ONLY — drop this block when porting ===== */
+.preview-bar {
+  position: sticky; top: 0; z-index: 5;
+  width: 100%;
+  padding: 8px 10px 10px;
+  background: #241c16;
+  color: #f3eee4;
+}
+.preview-idea { margin: 0 0 6px; font-size: 13px; line-height: 1.35; color: #e7d7c4; }
+.preview-row { display: flex; flex-wrap: wrap; gap: 6px; }
+.preview-bar button {
+  min-height: 44px; padding: 6px 10px;
+  border: 1px solid rgba(243,238,228,.35);
+  background: transparent; color: #f3eee4;
+  border-radius: 3px; font-size: 13px; font-family: var(--sans);
+}
+.preview-bar button[aria-pressed="true"] { background: #f3eee4; color: #241c16; border-color: #f3eee4; }
+body.is-preview #ring[hidden] { display: grid !important; }
+body.is-preview #tray[hidden] { display: flex !important; }
+body.is-preview #live[hidden] { display: flex !important; }
+body.is-preview #novoice-btn[hidden],
+body.is-preview #audio-btn[hidden] { display: inline-flex !important; }
+body.is-preview[data-state="error"] #start-error[hidden],
+body.is-preview[data-state="offline"] #start-error[hidden] { display: block !important; }
+body.is-preview #start-btn:disabled { opacity: 1; }
+body.is-preview #sheet {
+  display: block !important;
+  position: relative !important;
+  inset: auto !important;
+  width: min(420px, 100%) !important;
+  max-height: none !important;
+  height: auto !important;
+  margin: 0 auto 32px !important;
+  border-radius: 0 !important;
+  box-shadow: none !important;
+  border-top: 1px dashed var(--copper) !important;
+}
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after { animation: none !important; transition: none !important; }
+}
+
+  </style>
+</head>
+<body data-surface="app" data-state="asleep" class="surface-app">
+<!-- A — A daylight pantry blotter: paper, copper rules, and her face as a postage stamp. -->
+<!-- PREVIEW ONLY -->
+<nav class="preview-bar" id="preview-bar" aria-label="Preview states">
+  <p class="preview-idea">A — A daylight pantry blotter: paper, copper rules, and her face as a postage stamp.</p>
+  <div class="preview-row">
+    <button type="button" data-set="asleep" aria-pressed="true">Asleep</button>
+    <button type="button" data-set="idle" aria-pressed="false">Ready</button>
+    <button type="button" data-set="listening" aria-pressed="false">Listening</button>
+    <button type="button" data-set="thinking" aria-pressed="false">Thinking</button>
+    <button type="button" data-set="speaking" aria-pressed="false">Speaking</button>
+    <button type="button" data-set="working_on_computer" aria-pressed="false">Working</button>
+    <button type="button" data-set="waiting_for_you" aria-pressed="false">Waiting</button>
+    <button type="button" data-set="needs_your_hands" aria-pressed="false">Needs you</button>
+    <button type="button" data-set="error" aria-pressed="false">Error</button>
+  </div>
+</nav>
+<script>
+/* PREVIEW ONLY — drop this script with the bar. It only flips data-state. */
+(function () {
+  document.body.classList.add("is-preview");
+  var copy = {
+    asleep: ["Asleep", "Say Uhlexa", ""],
+    idle: ["Ready", "Ready when you are", ""],
+    listening: ["Listening", "Cleats for Max, under seventy.", ""],
+    thinking: ["Thinking", "One moment\u2026", ""],
+    speaking: ["Speaking", "I found a pair for forty-two dollars.", ""],
+    working_on_computer: ["Working", "Working on the family computer", "Opening the store."],
+    waiting_for_you: ["Waiting for you", "Waiting for your OK", "Soccer cleats for Max"],
+    needs_your_hands: ["Needs you", "I need you to take over", "The store wants a sign-in."],
+    error: ["Error", "Voice is offline", "The microphone is blocked. Allow it, then try again."]
+  };
+  document.getElementById("preview-bar").addEventListener("click", function (ev) {
+    var b = ev.target.closest("button[data-set]");
+    if (!b) return;
+    var s = b.getAttribute("data-set");
+    var meta = copy[s];
+    document.body.setAttribute("data-state", s);
+    var pill = document.getElementById("state-pill");
+    var ring = document.getElementById("ring");
+    pill.setAttribute("data-state", s);
+    ring.setAttribute("data-state", s);
+    pill.textContent = meta[0];
+    document.getElementById("state-caption").textContent = meta[1];
+    document.getElementById("state-detail").textContent = meta[2];
+    ring.style.setProperty("--lvl", (s === "speaking" || s === "listening") ? "0.8" : "0.32");
+    var buttons = document.querySelectorAll("#preview-bar button[data-set]");
+    for (var i = 0; i < buttons.length; i++) buttons[i].setAttribute("aria-pressed", buttons[i] === b ? "true" : "false");
+  });
+})();
+</script>
+
+<div class="phone">
+  <header class="phone-top">
+    <span class="brand"><span class="brand-mark" aria-hidden="true"></span>Uhlexa</span>
+    <span class="right">
+      <span id="state-pill" class="pill" data-state="asleep">Asleep</span>
+      <button id="settings-btn" type="button" class="icon-btn" aria-label="Settings">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="3"></circle><path d="M19.4 15a1.7 1.7 0 0 0 .3 1.8l.1.1a2 2 0 1 1-2.8 2.8l-.1-.1a1.7 1.7 0 0 0-1.8-.3 1.7 1.7 0 0 0-1 1.5V21a2 2 0 1 1-4 0v-.1a1.7 1.7 0 0 0-1.1-1.5 1.7 1.7 0 0 0-1.8.3l-.1.1a2 2 0 1 1-2.8-2.8l.1-.1a1.7 1.7 0 0 0 .3-1.8 1.7 1.7 0 0 0-1.5-1H3a2 2 0 1 1 0-4h.1a1.7 1.7 0 0 0 1.5-1.1 1.7 1.7 0 0 0-.3-1.8l-.1-.1a2 2 0 1 1 2.8-2.8l.1.1a1.7 1.7 0 0 0 1.8.3h0a1.7 1.7 0 0 0 1-1.5V3a2 2 0 1 1 4 0v.1a1.7 1.7 0 0 0 1 1.5h0a1.7 1.7 0 0 0 1.8-.3l.1-.1a2 2 0 1 1 2.8 2.8l-.1.1a1.7 1.7 0 0 0-.3 1.8v0a1.7 1.7 0 0 0 1.5 1H21a2 2 0 1 1 0 4h-.1a1.7 1.7 0 0 0-1.5 1z"></path></svg>
+      </button>
+    </span>
+  </header>
+
+  <div class="statusline" aria-label="Status">
+    <p id="state-caption" class="state-caption" role="status">Say Uhlexa</p>
+    <p id="state-detail" class="state-detail"></p>
+  </div>
+
+  <div id="ring" class="ring" data-state="asleep" hidden>
+    <span class="ring-glow"></span><span class="ring-arc"></span><span class="ring-core"></span>
+  </div>
+
+  <div id="tray" class="tray" aria-label="Needs you" hidden>
+    <div id="approvals">
+      <article class="card approval is-pending" data-id="apr-demo">
+        <div class="card-head">
+          <h3 class="card-title">Soccer cleats for Max</h3>
+          <span class="chip chip-amber">Needs your OK</span>
+        </div>
+        <p class="card-meta">$42.00</p>
+        <ul class="item-list">
+          <li>Size 3, black</li>
+          <li>Saturday pickup at the park</li>
+        </ul>
+        <p class="card-meta">Will use the family computer</p>
+        <p class="card-note">Max asked after practice. Under the seventy-dollar cap you set.</p>
+        <p class="card-meta">For Max Parker</p>
+        <div class="card-actions">
+          <button type="button" class="btn btn-primary">Approve</button>
+          <button type="button" class="btn btn-ghost">Deny</button>
+        </div>
+        <p class="card-error" role="alert" hidden>Could not save that decision.</p>
+      </article>
+    </div>
+    <div id="browser">
+      <article class="card browser status-running" data-id="bt-demo">
+        <div class="card-head">
+          <h3 class="card-title">Family computer</h3>
+          <div class="chip-row">
+            <span class="chip chip-violet">Working</span>
+          </div>
+        </div>
+        <p class="card-meta url">https://shop.example/cleats/size-3</p>
+        <img class="shot" alt="Latest screenshot from the family computer" src="data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A//www.w3.org/2000/svg%22%20width%3D%22640%22%20height%3D%22360%22%20viewBox%3D%220%200%20640%20360%22%3E%3Crect%20width%3D%22640%22%20height%3D%22360%22%20fill%3D%22%23faf6ee%22/%3E%3Crect%20x%3D%2228%22%20y%3D%2228%22%20width%3D%22220%22%20height%3D%22220%22%20rx%3D%2218%22%20fill%3D%22%23243f34%22/%3E%3Ccircle%20cx%3D%22138%22%20cy%3D%22118%22%20r%3D%2234%22%20fill%3D%22%23faf6ee%22/%3E%3Crect%20x%3D%2286%22%20y%3D%22168%22%20width%3D%22104%22%20height%3D%2244%22%20rx%3D%226%22%20fill%3D%22%23faf6ee%22/%3E%3Crect%20x%3D%22276%22%20y%3D%2244%22%20width%3D%22280%22%20height%3D%2216%22%20rx%3D%223%22%20fill%3D%22%23241c16%22/%3E%3Crect%20x%3D%22276%22%20y%3D%2274%22%20width%3D%22160%22%20height%3D%2210%22%20rx%3D%223%22%20fill%3D%22%23243f34%22/%3E%3Crect%20x%3D%22276%22%20y%3D%22112%22%20width%3D%22320%22%20height%3D%228%22%20rx%3D%222%22%20fill%3D%22%23241c16%22%20opacity%3D%22.25%22/%3E%3Crect%20x%3D%22276%22%20y%3D%22130%22%20width%3D%22250%22%20height%3D%228%22%20rx%3D%222%22%20fill%3D%22%23241c16%22%20opacity%3D%22.25%22/%3E%3Ctext%20x%3D%22276%22%20y%3D%22196%22%20font-family%3D%22Georgia%2Cserif%22%20font-size%3D%2236%22%20fill%3D%22%23241c16%22%3E%2442.00%3C/text%3E%3Ctext%20x%3D%22276%22%20y%3D%22230%22%20font-family%3D%22Georgia%2Cserif%22%20font-size%3D%2216%22%20fill%3D%22%23241c16%22%3ESize%203%2C%20in%20stock%3C/text%3E%3C/svg%3E">
+        <ol class="steps">
+          <li class="is-ok">open: Store search for size 3 cleats</li>
+          <li class="is-ok">find: Pair at $42, in stock</li>
+          <li class="is-bad">cart: Waiting — purchase needs your OK</li>
+        </ol>
+        <div class="card-actions">
+          <a class="btn btn-amber" href="#tray">Take over</a>
+        </div>
+      </article>
+    </div>
+  </div>
+
+  <div class="phone-body">
+    <section id="pre" class="panel pre" aria-label="Start">
+      <label for="user-select">Who is this?</label>
+      <select id="user-select">
+        <option value="alex" selected>Alex Parker (guardian)</option>
+        <option value="jordan">Jordan Parker (adult)</option>
+        <option value="max">Max Parker (child)</option>
+      </select>
+      <button id="start-btn" type="button" class="btn btn-primary btn-lg" disabled>Start</button>
+      <button id="novoice-btn" type="button" class="btn btn-ghost" hidden>Continue without voice</button>
+      <p id="status-note" class="note" hidden>Voice is offline: the worker is not running.</p>
+    </section>
+    <div id="chat" class="chat" aria-live="polite" aria-relevant="additions" aria-label="Conversation">
+      <div class="cap cap-heard bubble">
+        <span class="cap-label sr-only">You said</span>
+        <span class="cap-text">Uhlexa, order those soccer cleats for Max if they're under seventy dollars.</span>
+      </div>
+      <div class="cap cap-said bubble">
+        <span class="cap-label sr-only">Uhlexa said</span>
+        <span class="cap-text">I found a pair at forty-two dollars. I need your OK before I buy them.</span>
+      </div>
+      <div class="cap cap-said bubble interim" aria-hidden="true">
+        <span class="cap-label sr-only">Uhlexa said</span>
+        <span class="cap-text">Opening the family computer…</span>
+      </div>
+    </div>
+    <p id="start-error" class="error" role="alert" hidden>The microphone is blocked. Allow it in your browser to talk to Uhlexa.</p>
+  </div>
+
+  <footer id="live" class="composer" hidden>
+    <button id="mic-btn" type="button" class="mic voice-only" aria-pressed="false"><span class="mic-dot" aria-hidden="true"></span><span class="mic-label">Mic muted</span></button>
+    <button id="talk-btn" type="button" class="mic-big voice-only" aria-label="Tap to talk">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="9" y="2" width="6" height="12" rx="3"></rect><path d="M5 11a7 7 0 0 0 14 0"></path><path d="M12 18v4"></path></svg>
+    </button>
+    <button id="audio-btn" type="button" class="btn btn-ghost" hidden>Enable sound</button>
+    <button id="leave-btn" type="button" class="btn btn-ghost">Leave</button>
+  </footer>
+</div>
+
+<dialog id="sheet" class="sheet" aria-labelledby="sheet-title">
+  <h2 id="sheet-title">Settings</h2>
+  <p id="who" class="note">Signed in as Alex Parker</p>
+  <div class="voice-only">
+    <h3>How Uhlexa wakes up</h3>
+    <div id="mode-toggle" class="seg stack" role="radiogroup" aria-label="How Uhlexa wakes up">
+      <button type="button" role="radio" class="seg-btn" aria-checked="false" data-mode="wake_word">Say Uhlexa every time</button>
+      <button type="button" role="radio" class="seg-btn is-on" aria-checked="true" data-mode="follow_up">Follow-up (default)</button>
+      <button type="button" role="radio" class="seg-btn" aria-checked="false" data-mode="always">Always listening</button>
+    </div>
+  </div>
+  <button id="sheet-close" type="button" class="btn btn-primary">Done</button>
+</dialog>
+
+</body>
+</html>

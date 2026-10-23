@@ -1,0 +1,103 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#0b0d1a">
+  <title>Uhlexa hub</title>
+  <link rel="icon" href="data:,">
+  <link rel="stylesheet" href="/voice/voice.css">
+</head>
+<body data-surface="hub" class="surface-hub">
+  <script>try{var k=new URLSearchParams(location.search).get('kiosk');if(k!==null&&!/^(0|false|off|no)$/i.test(k.trim()))document.body.classList.add('kiosk')}catch(e){}</script>
+  <div id="kiosk-start" class="kiosk-start" role="button" tabindex="0" aria-label="Tap to start">
+    <div class="ring ring-kiosk" data-state="asleep" aria-hidden="true">
+      <span class="ring-glow"></span>
+      <span class="ring-arc"></span>
+      <span class="ring-core"><span class="kiosk-start-text">Tap to start</span></span>
+    </div>
+  </div>
+  <div class="hub">
+    <header class="hub-top">
+      <span class="brand"><span class="brand-mark" aria-hidden="true"></span>Uhlexa <small>family hub</small></span>
+      <span id="state-pill" class="pill" data-state="asleep">Checking</span>
+      <span id="counts" class="top-meta"></span>
+      <span class="spacer"></span>
+      <ul id="providers" class="providers" aria-label="Services"></ul>
+      <span id="who" class="top-meta"></span>
+    </header>
+
+    <aside class="hub-rail" aria-label="Family agents">
+      <h2 class="rail-title">Family agents</h2>
+      <ul id="rail" class="rail"></ul>
+    </aside>
+
+    <section class="hub-stage" aria-label="Uhlexa">
+      <div id="ring" class="ring ring-xl" role="img" aria-label="Uhlexa light ring" data-state="asleep">
+        <span class="ring-glow"></span>
+        <span class="ring-arc"></span>
+        <span class="ring-core">
+          <video id="stage-video" autoplay playsinline muted aria-label="Uhlexa's face"></video>
+          <span class="wave" aria-hidden="true"><span class="bar"></span><span class="bar"></span><span class="bar"></span><span class="bar"></span><span class="bar"></span><span class="bar"></span></span>
+        </span>
+      </div>
+      <p id="stage-notice" class="notice" role="status" hidden></p>
+      <p id="state-caption" class="state-caption" role="status"></p>
+      <p id="state-detail" class="state-detail"></p>
+
+      <section id="pre" class="panel pre" aria-label="Start">
+        <label for="user-select">Who is this hub for?</label>
+        <select id="user-select"></select>
+        <button id="start-btn" type="button" class="btn btn-primary btn-lg" disabled>Start</button>
+        <button id="novoice-btn" type="button" class="btn btn-ghost" hidden>Continue without voice</button>
+        <p id="status-note" class="note" hidden></p>
+      </section>
+
+      <section id="live" class="panel live" aria-label="Hub controls" hidden>
+        <div class="row">
+          <button id="talk-btn" type="button" class="btn btn-primary btn-talk voice-only">Tap to talk</button>
+          <button id="mic-btn" type="button" class="mic voice-only" aria-pressed="false"><span class="mic-dot" aria-hidden="true"></span><span class="mic-label">Mic muted</span></button>
+          <button id="audio-btn" type="button" class="btn btn-ghost" hidden>Enable sound</button>
+          <button id="leave-btn" type="button" class="btn btn-ghost">Leave</button>
+        </div>
+        <div id="mode-toggle" class="seg voice-only" aria-label="How Uhlexa wakes up"></div>
+      </section>
+      <p id="start-error" class="error" role="alert" hidden></p>
+    </section>
+
+    <main class="hub-cards" aria-label="Family board">
+      <p class="pre-note wide">Press Start to bring the family board online.</p>
+      <section aria-labelledby="h-approvals">
+        <h2 id="h-approvals" class="cards-title">Needs your OK</h2>
+        <div id="cards-approvals"></div>
+      </section>
+      <section aria-labelledby="h-threads">
+        <h2 id="h-threads" class="cards-title">Threads</h2>
+        <div id="cards-threads"></div>
+      </section>
+      <section class="wide" aria-labelledby="h-browser">
+        <h2 id="h-browser" class="cards-title">Family computer</h2>
+        <div id="cards-browser"></div>
+      </section>
+      <section class="wide" aria-labelledby="h-tasks">
+        <h2 id="h-tasks" class="cards-title">Tasks</h2>
+        <div id="cards-tasks"></div>
+      </section>
+    </main>
+
+    <footer class="hub-dock">
+      <div class="dock-captions">
+        <h2 class="dock-title">Captions</h2>
+        <div id="captions" class="captions" aria-live="polite" aria-relevant="additions" aria-label="Captions"></div>
+      </div>
+      <div class="dock-activity">
+        <h2 class="dock-title">Activity</h2>
+        <ul id="activity" class="activity" aria-label="Recent activity"></ul>
+      </div>
+    </footer>
+  </div>
+
+  <script src="/voice-vendor/livekit-client.umd.min.js"></script>
+  <script src="/voice/voice.js"></script>
+</body>
+</html>

@@ -1,0 +1,57 @@
+# Local stack: db (Postgres 17), api (migrates, seeds, serves), worker (drains the jobs table).
+# Secrets and provider flags come from .env (optional, git-ignored); see .env.example.
+
+# Forced inside the containers so a .env written for running outside Docker cannot break the wiring.
+x-app-env: &app-env
+  APP_ENV: development
+  DATABASE_URL: postgresql+psycopg://uhlexa:uhlexa@db:5432/uhlexa
+  APP_HOST: 0.0.0.0
+  APP_PORT: "8000"
+  SEED_DEMO_DATA: ${SEED_DEMO_DATA:-true}
+
+services:
+  db:
+    image: postgres:17-alpine
+    environment:
+      POSTGRES_USER: uhlexa
+      POSTGRES_PASSWORD: uhlexa
+      POSTGRES_DB: uhlexa
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    ports:
+      - "127.0.0.1:${DB_PORT:-5433}:5432"
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U uhlexa -d uhlexa"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+
+  api:
+    build: .
+    depends_on:
+      db:
+        condition: service_healthy
+    env_file:
+      - path: .env
+        required: false
+    environment:
+      <<: *app-env
+    ports:
+      - "127.0.0.1:${APP_PORT:-8000}:8000"
+
+  worker:
+    build: .
+    command: ["python", "-m", "app.jobs.worker"]
+    depends_on:
+      api:
+        condition: service_healthy
+    env_file:
+      - path: .env
+        required: false
+    environment:
+      <<: *app-env
+    healthcheck:
+      disable: true
+
+volumes:
+  pgdata:

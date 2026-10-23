@@ -1,0 +1,74 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="color-scheme" content="dark light">
+  <title>Uhlexa family hub simulator</title>
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <div class="app" id="app">
+    <header class="topbar">
+      <div class="topbar-row">
+        <span class="brand"><span class="brand-mark" aria-hidden="true"></span>Uhlexa</span>
+        <span id="household" class="household"></span>
+        <span class="spacer"></span>
+        <a id="waiting-link" class="waiting-link" href="#approvals" hidden></a>
+        <div class="who">
+          <label for="user-select" class="sr-only">Signed in as</label>
+          <select id="user-select" disabled><option>Loading people</option></select>
+          <span id="role-chip" class="chip" hidden></span>
+        </div>
+        <button id="reset-btn" type="button" class="btn btn-quiet" title="Wipes the demo data and reseeds it. Development only.">Reset demo</button>
+      </div>
+      <div class="topbar-row">
+        <ul id="providers" class="providers" aria-label="Connected services"></ul>
+        <span id="conn" class="conn" role="status" hidden></span>
+      </div>
+      <p id="provider-detail" class="provider-detail" hidden></p>
+    </header>
+
+    <main class="main" id="main">
+      <section class="col col-talk" aria-labelledby="talk-h">
+        <h2 id="talk-h" class="col-title">Conversations</h2>
+        <div class="threads-wrap">
+          <ul id="threads" class="threads" aria-label="Conversation threads"></ul>
+        </div>
+        <div id="transcript" class="transcript" aria-live="polite"></div>
+        <form id="composer" class="composer" autocomplete="off">
+          <div class="chips" id="quick-chips"></div>
+          <div class="composer-row">
+            <label for="msg" class="sr-only">Message to your Uhlexa</label>
+            <textarea id="msg" rows="2" maxlength="2000" placeholder="Ask your Uhlexa something"></textarea>
+            <button id="send-btn" type="submit" class="btn btn-primary">Send</button>
+          </div>
+        </form>
+      </section>
+
+      <section class="col col-do" aria-label="Approvals, tasks and browser">
+        <div id="approvals" class="block" aria-labelledby="approvals-h">
+          <h2 id="approvals-h" class="col-title">Approvals</h2>
+          <div id="approvals-body"><p class="empty">Loading</p></div>
+        </div>
+        <div class="block" aria-labelledby="browser-h">
+          <h2 id="browser-h" class="col-title">Browser</h2>
+          <div id="browser-body"><p class="empty">Loading</p></div>
+        </div>
+        <div class="block" aria-labelledby="tasks-h">
+          <h2 id="tasks-h" class="col-title">Tasks</h2>
+          <div id="tasks-body"><p class="empty">Loading</p></div>
+        </div>
+      </section>
+
+      <section class="col col-log" aria-labelledby="log-h">
+        <h2 id="log-h" class="col-title">Activity</h2>
+        <div id="activity-body"><p class="empty">Loading</p></div>
+      </section>
+    </main>
+
+    <div id="toasts" class="toasts" role="status" aria-live="polite"></div>
+  </div>
+  <script src="app.js" defer></script>
+</body>
+</html>

@@ -1,0 +1,66 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#0b0d1a">
+  <title>Uhlexa speaker</title>
+  <link rel="icon" href="data:,">
+  <link rel="stylesheet" href="/voice/voice.css">
+</head>
+<body data-surface="echo" class="surface-echo">
+  <script>try{var k=new URLSearchParams(location.search).get('kiosk');if(k!==null&&!/^(0|false|off|no)$/i.test(k.trim()))document.body.classList.add('kiosk')}catch(e){}</script>
+  <div id="kiosk-start" class="kiosk-start" role="button" tabindex="0" aria-label="Tap to start">
+    <div class="ring ring-kiosk" data-state="asleep" aria-hidden="true">
+      <span class="ring-glow"></span>
+      <span class="ring-arc"></span>
+      <span class="ring-core"><span class="kiosk-start-text">Tap to start</span></span>
+    </div>
+  </div>
+  <main class="echo">
+    <header class="echo-head">
+      <span class="brand"><span class="brand-mark" aria-hidden="true"></span>Uhlexa speaker</span>
+      <span id="state-pill" class="pill" data-state="asleep">Checking</span>
+    </header>
+
+    <div id="ring" class="ring ring-echo" role="img" aria-label="Uhlexa light ring" data-state="asleep">
+      <span class="ring-glow"></span>
+      <span class="ring-arc"></span>
+      <span class="ring-core">
+        <span class="wave" aria-hidden="true"><span class="bar"></span><span class="bar"></span><span class="bar"></span><span class="bar"></span><span class="bar"></span><span class="bar"></span></span>
+      </span>
+    </div>
+
+    <section class="stateblock" aria-label="Status">
+      <p id="state-caption" class="state-caption" role="status"></p>
+      <p id="state-detail" class="state-detail"></p>
+      <p id="hint" class="hint" hidden></p>
+    </section>
+
+    <div id="captions" class="captions" aria-live="polite" aria-relevant="additions" aria-label="Captions"></div>
+
+    <section id="pre" class="panel pre" aria-label="Start">
+      <label for="user-select">Who is talking?</label>
+      <select id="user-select"></select>
+      <button id="start-btn" type="button" class="btn btn-primary btn-lg" disabled>Start</button>
+      <p id="status-note" class="note" hidden></p>
+    </section>
+
+    <section id="live" class="panel live" aria-label="Speaker controls" hidden>
+      <button id="talk-btn" type="button" class="btn btn-primary btn-talk">Tap to talk</button>
+      <div id="mode-toggle" class="seg" aria-label="How Uhlexa wakes up"></div>
+      <div class="row">
+        <button id="mic-btn" type="button" class="mic" aria-pressed="false"><span class="mic-dot" aria-hidden="true"></span><span class="mic-label">Mic muted</span></button>
+        <button id="audio-btn" type="button" class="btn btn-ghost" hidden>Enable sound</button>
+        <button id="leave-btn" type="button" class="btn btn-ghost">Leave</button>
+      </div>
+    </section>
+
+    <p id="start-error" class="error" role="alert" hidden></p>
+    <p class="echo-foot">The mic is only on while this page is joined. Leave to turn it off.</p>
+  </main>
+
+  <script src="/voice-vendor/livekit-client.umd.min.js"></script>
+  <script src="/voice/voice.js"></script>
+</body>
+</html>

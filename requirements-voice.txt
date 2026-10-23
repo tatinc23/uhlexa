@@ -1,0 +1,16 @@
+# Voice worker extras (spec 22.4). Installed only into .venv-voice by scripts/voice_worker.sh; the app image and
+# uv.lock do not include them. Versions match what tatclaw runs in production-like use (livekit-agents 1.5.8).
+livekit-agents[groq,openai,runway,silero,turn-detector]==1.5.8
+livekit-plugins-groq==1.5.8
+livekit-plugins-openai==1.5.8
+livekit-plugins-runway==1.5.8
+livekit-plugins-silero==1.5.8
+livekit-plugins-turn-detector==1.5.8
+livekit-api==1.1.0
+# What the worker imports from the app (app.providers.keiki pulls app.errors and app.settings). The full app stack
+# (mcp, SQLAlchemy, psycopg, inkbox) is not needed and does not co-resolve with livekit-agents on this Mac.
+fastapi>=0.115
+pydantic-settings>=2.6
+httpx>=0.28
+python-dotenv>=1.0
+pytest>=8

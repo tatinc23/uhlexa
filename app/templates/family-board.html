@@ -1,0 +1,308 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Family Board</title>
+<style>
+  :root {
+    color-scheme: light dark;
+    --bg: #f6f7f9; --card: #ffffff; --ink: #1b1f27; --muted: #5d6675; --line: #dfe3ea;
+    --accent: #3b5bdb; --ok: #1f7a4d; --warn: #9a5b00; --bad: #b3261e; --chip: #eceff4;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --bg: #12141a; --card: #1b1e27; --ink: #e8eaf0; --muted: #98a1b3; --line: #2b303c;
+      --accent: #8da2fb; --ok: #5bd39a; --warn: #f0b24a; --bad: #ff8a80; --chip: #272b36;
+    }
+  }
+  * { box-sizing: border-box; }
+  html, body { margin: 0; background: var(--bg); color: var(--ink); }
+  body { font: 14px/1.45 system-ui, -apple-system, "Segoe UI", Roboto, sans-serif; padding: 12px; min-width: 0; }
+  h1 { font-size: 18px; margin: 0; }
+  h2 { font-size: 12px; letter-spacing: .06em; text-transform: uppercase; color: var(--muted); margin: 0 0 8px; }
+  header { display: flex; flex-wrap: wrap; gap: 8px 16px; align-items: baseline; justify-content: space-between; margin-bottom: 12px; }
+  .sub { color: var(--muted); font-size: 12px; }
+  .grid { display: grid; gap: 12px; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); }
+  section { background: var(--card); border: 1px solid var(--line); border-radius: 10px; padding: 12px; min-width: 0; }
+  section.wide { grid-column: 1 / -1; }
+  .item { border-top: 1px solid var(--line); padding: 8px 0; overflow-wrap: anywhere; }
+  .item:first-of-type { border-top: 0; padding-top: 0; }
+  .row { display: flex; flex-wrap: wrap; gap: 6px; align-items: center; }
+  .chip { display: inline-block; background: var(--chip); border-radius: 999px; padding: 1px 8px; font-size: 11px; color: var(--muted); }
+  .chip.ok { color: var(--ok); } .chip.warn { color: var(--warn); } .chip.bad { color: var(--bad); }
+  .strong { font-weight: 600; }
+  .muted { color: var(--muted); }
+  .empty { color: var(--muted); font-style: italic; }
+  .why { margin-top: 2px; font-size: 13px; }
+  .why.bad { color: var(--bad); }
+  a { color: var(--accent); }
+  .banner { background: var(--chip); border-radius: 8px; padding: 8px 10px; margin-bottom: 12px; font-size: 13px; }
+  .banner.bad { color: var(--bad); }
+  .takeover { margin-top: 6px; padding: 6px 8px; border: 1px dashed var(--warn); border-radius: 8px; }
+  ul { margin: 4px 0 0; padding-left: 18px; }
+</style>
+</head>
+<body>
+<div id="banner" class="banner" hidden></div>
+<header>
+  <div>
+    <h1 id="title">Family Board</h1>
+    <div class="sub" id="who">Waiting for the board&hellip;</div>
+  </div>
+  <div class="row" id="providers" aria-label="Providers"></div>
+</header>
+<main class="grid" id="board" aria-live="polite"></main>
+
+<script>
+(function () {
+  "use strict";
+
+  // ---- DOM helpers: every piece of text goes in with textContent, never as markup -------------------------------
+  function h(tag, props, children) {
+    var node = document.createElement(tag);
+    if (props) {
+      Object.keys(props).forEach(function (key) {
+        if (key === "text") node.textContent = props[key];
+        else if (key === "class") node.className = props[key];
+        else node.setAttribute(key, props[key]);
+      });
+    }
+    (children || []).forEach(function (child) {
+      if (child) node.appendChild(typeof child === "string" ? document.createTextNode(child) : child);
+    });
+    return node;
+  }
+  function chip(text, tone) { return h("span", { "class": "chip" + (tone ? " " + tone : ""), text: String(text) }); }
+  function label(value) { return String(value == null ? "" : value).replace(/_/g, " "); }
+  function when(iso) {
+    var d = new Date(iso);
+    return isNaN(d.getTime()) ? "" : d.toLocaleString([], { month: "short", day: "numeric", hour: "numeric", minute: "2-digit" });
+  }
+  function money(cents) { return cents == null ? "" : "$" + (cents / 100).toFixed(2); }
+  function empty(text) { return h("div", { "class": "empty", text: text }); }
+  function safeLink(url) { return typeof url === "string" && /^https?:\/\//i.test(url); }
+  function card(title, children, wide) {
+    return h("section", wide ? { "class": "wide" } : null, [h("h2", { text: title })].concat(children));
+  }
+  function tone(status) {
+    if (["ok", "completed", "succeeded", "approved", "verified"].indexOf(status) >= 0) return "ok";
+    if (["pending_approval", "pending", "needs_takeover", "queued", "starting", "running", "misconfigured"].indexOf(status) >= 0) return "warn";
+    if (["failed", "denied", "cancelled", "unavailable", "error"].indexOf(status) >= 0) return "bad";
+    return "";
+  }
+
+  // ---- sections ------------------------------------------------------------------------------------------------
+  function approvals(board) {
+    var list = (board.approvals && board.approvals.pending) || [];
+    var nodes = list.map(function (a) {
+      var items = (a.task && a.task.items) || [];
+      return h("div", { "class": "item" }, [
+        h("div", { "class": "row" }, [
+          h("span", { "class": "strong", text: a.task ? a.task.title : "Approval" }),
+          chip("waiting", "warn"),
+          a.ai_assisted ? chip("AI-assisted") : null,
+        ]),
+        items.length ? h("div", { "class": "muted", text: items.join(", ") }) : null,
+        h("div", { "class": "why", text: "Why: " + a.reason }),
+        h("div", { "class": "sub", text: a.can_decide ? "You can approve this on the Family Board." : a.can_decide_reason || "Waiting for a person to approve." }),
+      ]);
+    });
+    return card("Needs a person (" + list.length + ")", nodes.length ? nodes : [empty("Nothing is waiting for approval.")]);
+  }
+
+  function tasks(board) {
+    var groups = {};
+    (board.tasks || []).forEach(function (t) { (groups[t.status] = groups[t.status] || []).push(t); });
+    var order = ["pending_approval", "approved", "running", "needs_takeover", "completed", "failed", "denied", "cancelled"];
+    var nodes = [];
+    order.concat(Object.keys(groups).filter(function (s) { return order.indexOf(s) < 0; })).forEach(function (status) {
+      var rows = groups[status];
+      if (!rows) return;
+      nodes.push(h("div", { "class": "item" }, [
+        h("div", { "class": "row" }, [chip(label(status), tone(status)), h("span", { "class": "muted", text: rows.length + (rows.length === 1 ? " task" : " tasks") })]),
+        h("ul", null, rows.slice(0, 6).map(function (t) {
+          return h("li", { text: t.title + (t.amount_cents != null ? " (" + money(t.amount_cents) + ")" : "") });
+        })),
+      ]));
+    });
+    return card("Tasks", nodes.length ? nodes : [empty("No tasks yet.")]);
+  }
+
+  function browser(board) {
+    var list = board.browser_tasks || [];
+    var nodes = list.slice(0, 3).map(function (b) {
+      var children = [
+        h("div", { "class": "row" }, [
+          h("span", { "class": "strong", text: label(b.task_type) }),
+          chip(label(b.status), tone(b.status)),
+          b.verified ? chip("verified", "ok") : chip("not verified"),
+        ]),
+      ];
+      if (b.last_error) children.push(h("div", { "class": "why bad", text: b.last_error }));
+      if (b.steps && b.steps.length) {
+        var last = b.steps[b.steps.length - 1];
+        children.push(h("div", { "class": "sub", text: b.steps.length + " step(s); last: " + label(last.action) + (last.ok ? "" : " (failed)") }));
+      }
+      if (b.requires_takeover) {
+        if (safeLink(b.takeover_url)) {
+          children.push(h("div", { "class": "takeover" }, [
+            "A person has to take over. ",
+            h("a", { href: b.takeover_url, target: "_blank", rel: "noopener noreferrer", text: "Open the takeover link" }),
+          ]));
+        } else {
+          children.push(h("div", { "class": "takeover", text: b.takeover_hint || "A person has to take over; only the owner sees the link." }));
+        }
+      }
+      return h("div", { "class": "item" }, children);
+    });
+    return card("Browser task", nodes.length ? nodes : [empty("No browser task has run.")]);
+  }
+
+  function threads(board) {
+    var list = board.conversations || [];
+    var nodes = list.slice(0, 6).map(function (c) {
+      var state = c.thread_state || {};
+      var kids = [
+        h("div", { "class": "row" }, [
+          h("span", { "class": "strong", text: c.title }),
+          chip(label(c.status)),
+          (c.resumed_by || []).length ? chip("resumed by " + c.resumed_by.join(", ")) : null,
+        ]),
+        h("div", { "class": "sub", text: (c.participants || []).map(function (p) {
+          return p.name + (p.joined_via && p.joined_via !== "created" ? " (" + p.joined_via + ")" : "");
+        }).join(" · ") }),
+      ];
+      if (state.items && state.items.length) kids.push(h("div", { "class": "muted", text: "List: " + state.items.join(", ") }));
+      if (c.transcript_label) kids.push(h("div", { "class": "sub", text: c.transcript_label }));
+      return h("div", { "class": "item" }, kids);
+    });
+    return card("Threads", nodes.length ? nodes : [empty("No conversations yet.")]);
+  }
+
+  function members(board) {
+    var nodes = (board.members || []).map(function (m) {
+      return h("div", { "class": "item" }, [
+        h("div", { "class": "row" }, [
+          h("span", { "class": "strong", text: m.display_name }),
+          chip(m.role),
+          m.is_viewer ? chip("you", "ok") : null,
+        ]),
+        h("div", { "class": "sub", text: m.agent ? m.agent.name : "" }),
+      ]);
+    });
+    return card("Members", nodes.length ? nodes : [empty("No members.")]);
+  }
+
+  function activity(board) {
+    var nodes = (board.activity || []).slice(0, 12).map(function (e) {
+      return h("div", { "class": "item" }, [
+        h("div", { text: e.summary }),
+        h("div", { "class": "sub", text: label(e.event_type) + " · " + when(e.created_at) }),
+      ]);
+    });
+    return card("Activity", nodes.length ? nodes : [empty("Nothing has happened yet.")], true);
+  }
+
+  function render(board) {
+    if (!board || typeof board !== "object" || !board.household) return;
+    setBanner("");
+    document.getElementById("title").textContent = "Family Board · " + board.household.name;
+    var viewer = board.viewer || {};
+    document.getElementById("who").textContent =
+      "Viewing as " + (viewer.display_name || "?") + " (" + (viewer.role || "?") + ") · updated " + when(board.generated_at);
+    var providers = document.getElementById("providers");
+    providers.replaceChildren.apply(providers, Object.keys(board.providers || {}).map(function (name) {
+      var p = board.providers[name];
+      var badge = chip(name + ": " + p.status, tone(p.status));
+      badge.title = p.detail || "";
+      return badge;
+    }));
+    var root = document.getElementById("board");
+    root.replaceChildren(approvals(board), tasks(board), browser(board), threads(board), members(board), activity(board));
+  }
+
+  function setBanner(text, bad) {
+    var node = document.getElementById("banner");
+    node.hidden = !text;
+    node.textContent = text || "";
+    node.className = "banner" + (bad ? " bad" : "");
+  }
+
+  // ---- MCP Apps view handshake (ext-apps 2026-01-26) -----------------------------------------------------------
+  var nextId = 1, waiting = {}, hosted = false, standalone = false;
+
+  function post(message) { window.parent.postMessage(message, "*"); }
+  function request(method, params) {
+    return new Promise(function (resolve) {
+      var id = nextId++;
+      waiting[id] = resolve;
+      post({ jsonrpc: "2.0", id: id, method: method, params: params });
+    });
+  }
+  function notify(method, params) { post({ jsonrpc: "2.0", method: method, params: params || {} }); }
+
+  window.addEventListener("message", function (event) {
+    var m = event.data;
+    if (event.source !== window.parent || !m || m.jsonrpc !== "2.0") return;
+    if (m.id !== undefined && m.method === undefined && waiting[m.id]) {
+      var done = waiting[m.id];
+      delete waiting[m.id];
+      done(m);
+    } else if (m.method === "ui/notifications/tool-result") {
+      render(m.params && m.params.structuredContent);
+    } else if (m.method === "ui/resource-teardown" && m.id !== undefined) {
+      post({ jsonrpc: "2.0", id: m.id, result: {} });
+    } else if (m.id !== undefined && m.method === "ping") {
+      post({ jsonrpc: "2.0", id: m.id, result: {} });
+    }
+  });
+
+  function watchSize() {
+    if (typeof ResizeObserver === "undefined") return;
+    var last = "";
+    new ResizeObserver(function () {
+      var size = { width: Math.ceil(document.documentElement.scrollWidth), height: Math.ceil(document.documentElement.scrollHeight) };
+      var key = size.width + "x" + size.height;
+      if (key !== last) { last = key; notify("ui/notifications/size-changed", size); }
+    }).observe(document.body);
+  }
+
+  // ---- standalone: /board polls /api/board ---------------------------------------------------------------------
+  function startStandalone() {
+    if (standalone) return;
+    standalone = true;
+    var as = new URLSearchParams(window.location.search).get("as") || "alex";
+    function poll() {
+      fetch("/api/board", { credentials: "same-origin", headers: { "X-Uhlexa-User": as } })
+        .then(function (response) {
+          if (!response.ok) throw new Error("The board answered " + response.status + ".");
+          return response.json();
+        })
+        .then(render)
+        .catch(function (error) { setBanner("Could not load the board: " + error.message, true); });
+    }
+    poll();
+    window.setInterval(poll, 3000);
+  }
+
+  function start() {
+    if (window.parent === window) { startStandalone(); return; }
+    var timer = window.setTimeout(function () { if (!hosted) startStandalone(); }, 800);
+    request("ui/initialize", {
+      appInfo: { name: "Uhlexa Family Board", version: "1.0.0" },
+      appCapabilities: {},
+      protocolVersion: "2026-01-26",
+    }).then(function () {
+      hosted = true;
+      window.clearTimeout(timer);
+      notify("ui/notifications/initialized");
+      watchSize();
+    });
+  }
+
+  start();
+})();
+</script>
+</body>
+</html>

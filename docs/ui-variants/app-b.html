@@ -1,0 +1,557 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#101411">
+  <title>Uhlexa app — B</title>
+  <link rel="icon" href="data:,">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=Space+Grotesk:wght@500;600;700&display=swap">
+  <style>
+/* B — A night ferry board: split-flap type and a chartreuse level meter, no glow.
+   Port: scope every rule under body.surface-app. Drop the PREVIEW ONLY block. */
+:root {
+  --bg: #101411;
+  --flap: #181e1a;
+  --line: #2a342e;
+  --ink: #f4f1ea;
+  --muted: #9aa396;
+  --leaf: #dff25a;
+  --alert: #ff5a3c;
+  --paper: #f4f1ea;
+  --display: "Space Grotesk", "Avenir Next", "Segoe UI", sans-serif;
+  --mono: "IBM Plex Mono", ui-monospace, "SFMono-Regular", Menlo, monospace;
+  --state: #8e998f;
+  --lvl: 0.4;
+}
+body[data-state="asleep"] { --state: #8e998f; }
+body[data-state="idle"] { --state: #dff25a; }
+body[data-state="listening"] { --state: #dff25a; }
+body[data-state="thinking"] { --state: #f4f1ea; }
+body[data-state="speaking"] { --state: #dff25a; }
+body[data-state="working_on_computer"] { --state: #c5d97a; }
+body[data-state="waiting_for_you"] { --state: #f4f1ea; }
+body[data-state="needs_your_hands"],
+body[data-state="error"],
+body[data-state="offline"] { --state: #ff5a3c; }
+
+*, *::before, *::after { box-sizing: border-box; }
+html, body { margin: 0; }
+html { overflow-x: hidden; }
+body {
+  background: var(--bg);
+  color: var(--ink);
+  font-family: var(--mono);
+  font-size: 14px;
+  line-height: 1.45;
+  -webkit-font-smoothing: antialiased;
+}
+body.surface-app { color-scheme: dark; }
+h2, h3, h4, p, ul, ol { margin: 0; }
+button, select { font: inherit; color: inherit; }
+button { cursor: pointer; }
+:focus-visible { outline: 2px solid var(--leaf); outline-offset: 3px; }
+img { max-width: 100%; border: 0; }
+.sr-only {
+  position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px;
+  overflow: hidden; clip: rect(0, 0, 0, 0); white-space: nowrap; border: 0;
+}
+
+.phone {
+  width: min(420px, 100%);
+  margin: 0 auto;
+  min-height: 100svh;
+  background: var(--bg);
+  display: grid;
+  grid-template-columns: 1fr 108px;
+  grid-template-areas:
+    "top top"
+    "status ring"
+    "tray tray"
+    "chat chat"
+    "live live"
+    "pre pre"
+    "err err";
+  align-content: start;
+}
+.phone-body { display: contents; }
+.phone-top { grid-area: top; }
+.statusline { grid-area: status; }
+#ring { grid-area: ring; }
+#tray { grid-area: tray; }
+#chat { grid-area: chat; }
+#live { grid-area: live; }
+#pre { grid-area: pre; }
+#start-error { grid-area: err; }
+
+.phone-top {
+  display: flex; align-items: center; justify-content: space-between;
+  gap: 12px; padding: 12px 14px;
+  border-bottom: 1px solid var(--line);
+}
+.brand {
+  display: inline-flex; align-items: center; gap: 8px;
+  font-family: var(--mono); font-weight: 500; font-size: 12px;
+  letter-spacing: .28em; text-transform: uppercase;
+}
+.brand-mark { width: 10px; height: 10px; background: var(--leaf); flex: none; }
+.right { display: inline-flex; align-items: center; gap: 8px; }
+.pill {
+  display: inline-flex; align-items: center; justify-content: center;
+  min-width: 88px; min-height: 36px; padding: 4px 8px;
+  background: var(--state); color: #14170f;
+  font-family: var(--display); font-weight: 700; font-size: 13px;
+  letter-spacing: .08em; text-transform: uppercase;
+}
+body[data-state="needs_your_hands"] .pill,
+body[data-state="error"] .pill,
+body[data-state="offline"] .pill { color: #fff8f4; }
+.icon-btn {
+  width: 44px; height: 44px; padding: 0;
+  display: grid; place-items: center;
+  border: 1px solid var(--line); background: transparent; color: var(--ink);
+}
+.icon-btn svg { width: 20px; height: 20px; }
+
+.statusline { padding: 16px 8px 12px 14px; align-self: end; min-width: 0; }
+.state-caption {
+  font-family: var(--display);
+  font-weight: 700;
+  font-size: clamp(28px, 8.2vw, 40px);
+  line-height: .92;
+  letter-spacing: -0.04em;
+  text-transform: uppercase;
+}
+.state-detail { color: var(--muted); font-size: 12px; margin-top: 8px; letter-spacing: .04em; }
+.state-detail:empty { display: none; }
+
+#ring {
+  width: 86px; height: 120px;
+  margin: 14px 14px 8px auto;
+  position: relative;
+  display: flex; flex-direction: column; justify-content: flex-end; align-items: center;
+  padding: 8px 8px 10px;
+  background-color: var(--flap);
+  background-image: repeating-linear-gradient(to top, transparent, transparent 13px, #24302a 13px, #24302a 14px);
+  border: 1px solid var(--line);
+  overflow: hidden;
+}
+.ring-core {
+  width: 18px;
+  height: 14px;
+  background: var(--state);
+  position: relative; z-index: 1;
+}
+.ring-arc {
+  position: absolute; inset: 5px 5px 5px 5px;
+  border: 1px solid #314038;
+  border-bottom: 0;
+  pointer-events: none;
+}
+.ring-glow {
+  position: absolute; left: 0; right: 0; bottom: 0; height: 3px;
+  background: var(--state);
+}
+#ring[data-state="asleep"] .ring-core { height: 8px; opacity: .45; }
+#ring[data-state="idle"] .ring-core { height: 18px; }
+#ring[data-state="listening"] .ring-core { animation: uh-vu 1.05s ease-in-out infinite; }
+#ring[data-state="thinking"] .ring-core { height: 10px; animation: uh-blink 1s steps(1) infinite; }
+#ring[data-state="speaking"] .ring-core { height: calc(16px + var(--lvl) * 78px); }
+#ring[data-state="working_on_computer"] .ring-core { height: 52px; }
+#ring[data-state="waiting_for_you"] .ring-core { height: 36px; }
+#ring[data-state="needs_your_hands"] .ring-core,
+#ring[data-state="error"] .ring-core,
+#ring[data-state="offline"] .ring-core { height: 100%; }
+#ring[data-state="listening"] .ring-arc { animation: uh-spin 2.8s linear infinite; }
+@keyframes uh-vu {
+  0%, 100% { height: 16px; }
+  50% { height: 70px; }
+}
+@keyframes uh-blink { 50% { opacity: 0; } }
+@keyframes uh-spin { to { transform: rotate(360deg); } }
+
+#tray { display: flex; flex-direction: column; padding: 0 14px; border-top: 1px solid var(--line); }
+.card {
+  background: transparent;
+  border: none;
+  border-bottom: 1px solid var(--line);
+  padding: 12px 0 12px;
+  border-radius: 0;
+}
+.card.approval.is-pending { box-shadow: inset 3px 0 0 var(--leaf); padding-left: 10px; }
+.card.browser.status-running { box-shadow: inset 3px 0 0 var(--leaf); padding-left: 10px; }
+.card.browser.status-needs_takeover,
+.task-group.status-needs_takeover { box-shadow: inset 3px 0 0 var(--alert); }
+.card.browser.status-failed,
+.card.browser.status-cancelled,
+.card.browser.status-unavailable { box-shadow: inset 3px 0 0 var(--muted); }
+.card.thread { border-bottom-style: dashed; }
+.card-head { display: flex; align-items: flex-start; justify-content: space-between; gap: 10px; }
+.card-title {
+  font-family: var(--display);
+  font-size: 18px; font-weight: 700;
+  letter-spacing: -0.03em; text-transform: uppercase;
+  flex: 1;
+}
+.card-meta, .card-note, .card-hint, .card-error { font-size: 12px; margin-top: 6px; }
+.card-meta, .card-hint { color: var(--muted); }
+.card-note { color: var(--ink); }
+.card-error, .error { color: var(--alert); font-size: 13px; }
+.url { font-size: 11px; letter-spacing: 0; overflow-wrap: anywhere; color: var(--leaf); }
+.item-list { margin: 8px 0 0; padding-left: 16px; }
+.item-list li { margin: 2px 0; }
+.card-actions { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 12px; }
+.card-actions .btn { flex: 1 1 120px; }
+.shot {
+  display: block; width: 100%; height: 120px; object-fit: cover;
+  margin-top: 10px; filter: grayscale(1) contrast(1.15);
+  border: 1px solid var(--line);
+}
+.steps { list-style: none; padding: 0; margin: 10px 0 0; display: flex; flex-direction: column; gap: 4px; }
+.steps li {
+  font-size: 12px; padding: 4px 0 4px 8px;
+  border-left: 2px solid var(--leaf);
+}
+.steps .is-bad { border-left-color: var(--alert); color: #ffd2c8; }
+.steps .is-ok { border-left-color: var(--leaf); }
+
+.chip-row { display: flex; flex-wrap: wrap; gap: 6px; justify-content: flex-end; }
+.chip {
+  display: inline-flex; align-items: center; min-height: 22px;
+  padding: 2px 6px;
+  border: 1px solid currentColor;
+  font-size: 10px; letter-spacing: .14em; text-transform: uppercase;
+  white-space: nowrap;
+}
+.chip-amber { color: var(--leaf); }
+.chip-ok { color: var(--leaf); }
+.chip-grey { color: var(--muted); }
+.chip-violet { color: var(--ink); border-color: var(--ink); }
+.chip-bad { color: var(--alert); }
+
+.btn {
+  display: inline-flex; align-items: center; justify-content: center;
+  min-height: 48px; padding: 10px 14px;
+  border: 1px solid transparent; border-radius: 0;
+  font-family: var(--display); font-weight: 700; letter-spacing: .06em;
+  text-transform: uppercase; text-decoration: none; font-size: 14px;
+}
+.btn:disabled { opacity: .4; }
+.btn-primary { background: var(--leaf); color: #14170f; }
+.btn-ghost { background: transparent; border-color: var(--line); color: var(--ink); }
+.btn-amber { background: var(--alert); color: #fff8f4; }
+.btn-lg { min-height: 52px; width: 100%; font-size: 16px; }
+a.btn-amber { width: 100%; }
+
+#pre {
+  display: flex; flex-direction: column; gap: 8px;
+  padding: 14px; border-top: 1px solid var(--line);
+}
+#pre label { font-size: 10px; letter-spacing: .18em; text-transform: uppercase; color: var(--muted); }
+#user-select {
+  width: 100%; min-height: 48px; padding: 0 36px 0 12px;
+  border: 1px solid var(--line); border-radius: 0;
+  background-color: var(--flap); color: var(--ink);
+  background-image: linear-gradient(45deg, transparent 50%, var(--leaf) 50%), linear-gradient(135deg, var(--leaf) 50%, transparent 50%);
+  background-position: calc(100% - 18px) 22px, calc(100% - 12px) 22px;
+  background-size: 6px 6px, 6px 6px;
+  background-repeat: no-repeat;
+  appearance: none; font-size: 16px;
+}
+.note { color: var(--muted); font-size: 13px; }
+#start-error { padding: 0 14px 12px; }
+
+.chat { padding: 0 14px 8px; border-top: 1px solid var(--line); }
+.cap {
+  display: grid; grid-template-columns: 88px minmax(0, 1fr);
+  gap: 8px; padding: 8px 0;
+  border-bottom: 1px solid var(--line);
+}
+.cap .cap-label {
+  position: static; width: auto; height: auto; margin: 0; overflow: visible;
+  clip: auto; white-space: normal;
+  font-size: 10px; letter-spacing: .12em; text-transform: uppercase; color: var(--leaf); font-weight: 500;
+}
+.cap-heard .cap-label { color: var(--muted); }
+.cap-text { font-size: 13px; line-height: 1.4; }
+.interim .cap-text::after { content: "▍"; margin-left: 4px; animation: uh-blink 1s steps(1) infinite; }
+.interim { opacity: .72; }
+
+#live {
+  display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between;
+  gap: 8px;
+  padding: 12px 14px;
+  border-top: 1px solid var(--line);
+  border-bottom: 1px solid var(--line);
+}
+#audio-btn { flex: 1 0 100%; order: -1; }
+.mic {
+  display: inline-flex; align-items: center; gap: 8px;
+  min-height: 44px; padding: 0 8px;
+  border: 1px solid var(--line); background: transparent; color: var(--ink);
+}
+.mic-dot { width: 8px; height: 8px; background: var(--muted); }
+.mic.is-on { border-color: var(--leaf); color: var(--leaf); }
+.mic.is-on .mic-dot { background: var(--leaf); }
+.mic-label { font-size: 12px; letter-spacing: .06em; text-transform: uppercase; }
+.mic-big {
+  width: 64px; height: 64px;
+  border: none; background: var(--leaf); color: #14170f;
+  display: grid; place-items: center;
+}
+.mic-big svg { width: 26px; height: 26px; }
+body.no-voice .voice-only { display: none !important; }
+body.is-live #pre { display: none; }
+#ring.has-video .ring-core { opacity: .25; }
+
+#sheet {
+  border: none; background: #0c0f0d; color: var(--ink);
+  width: min(420px, calc(100% - 24px));
+  margin: auto auto 0; padding: 18px 14px 22px;
+  border-top: 1px solid var(--leaf);
+}
+#sheet::backdrop { background: rgba(0, 0, 0, .62); }
+#sheet h2 {
+  font-family: var(--display); font-weight: 700; font-size: 28px;
+  letter-spacing: -0.04em; text-transform: uppercase;
+}
+#sheet h3 {
+  margin: 16px 0 8px; font-size: 10px; font-weight: 500;
+  letter-spacing: .18em; text-transform: uppercase; color: var(--muted);
+}
+#who { margin-top: 6px; }
+.seg { display: flex; flex-direction: column; gap: 6px; }
+.seg-btn {
+  min-height: 48px; text-align: left; padding: 10px 12px;
+  border: 1px solid var(--line); background: transparent; color: var(--ink);
+  font-size: 13px;
+}
+.seg-btn.is-on { background: var(--leaf); color: #14170f; border-color: var(--leaf); }
+#sheet-close { width: 100%; margin-top: 16px; }
+
+.empty { color: var(--muted); font-size: 13px; padding: 8px 0; }
+.task-group { margin-top: 12px; padding-top: 8px; border-top: 1px solid var(--line); }
+.group-title {
+  display: flex; justify-content: space-between; align-items: baseline;
+  font-family: var(--display); font-size: 13px; letter-spacing: .12em; text-transform: uppercase;
+}
+.count { color: var(--muted); font-variant-numeric: tabular-nums; }
+.prov { display: flex; align-items: center; gap: 8px; min-height: 28px; font-size: 12px; letter-spacing: .06em; text-transform: uppercase; }
+.dot { width: 8px; height: 8px; background: var(--state); flex: none; }
+.wave { display: inline-flex; align-items: flex-end; gap: 2px; height: 14px; }
+.bar { display: block; width: 3px; height: 50%; background: var(--leaf); }
+.prov-ok .dot { background: var(--leaf); }
+.prov-amber .dot { background: var(--leaf); }
+.prov-grey .dot { background: var(--muted); }
+
+/* ===== PREVIEW ONLY — drop this block when porting ===== */
+.preview-bar {
+  position: sticky; top: 0; z-index: 5;
+  width: 100%; padding: 8px 10px 10px;
+  background: #070908; color: var(--ink);
+  border-bottom: 1px solid var(--line);
+}
+.preview-idea { margin: 0 0 6px; font-size: 12px; line-height: 1.35; color: var(--muted); }
+.preview-row { display: flex; flex-wrap: wrap; gap: 6px; }
+.preview-bar button {
+  min-height: 44px; padding: 6px 8px;
+  border: 1px solid var(--line); background: transparent; color: var(--ink);
+  font-family: var(--mono); font-size: 11px; letter-spacing: .06em; text-transform: uppercase;
+}
+.preview-bar button[aria-pressed="true"] { background: var(--leaf); color: #14170f; border-color: var(--leaf); }
+body.is-preview #ring[hidden] { display: flex !important; }
+body.is-preview #tray[hidden] { display: flex !important; }
+body.is-preview #live[hidden] { display: flex !important; }
+body.is-preview #novoice-btn[hidden],
+body.is-preview #audio-btn[hidden] { display: inline-flex !important; }
+body.is-preview[data-state="error"] #start-error[hidden],
+body.is-preview[data-state="offline"] #start-error[hidden] { display: block !important; }
+body.is-preview #start-btn:disabled { opacity: 1; }
+body.is-preview #sheet {
+  display: block !important;
+  position: relative !important;
+  inset: auto !important;
+  width: min(420px, 100%) !important;
+  max-height: none !important;
+  height: auto !important;
+  margin: 0 auto 28px !important;
+}
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after { animation: none !important; transition: none !important; }
+}
+
+  </style>
+</head>
+<body data-surface="app" data-state="asleep" class="surface-app">
+<!-- B — A night ferry board: split-flap type and a chartreuse level meter, no glow. -->
+<!-- PREVIEW ONLY -->
+<nav class="preview-bar" id="preview-bar" aria-label="Preview states">
+  <p class="preview-idea">B — A night ferry board: split-flap type and a chartreuse level meter, no glow.</p>
+  <div class="preview-row">
+    <button type="button" data-set="asleep" aria-pressed="true">Asleep</button>
+    <button type="button" data-set="idle" aria-pressed="false">Ready</button>
+    <button type="button" data-set="listening" aria-pressed="false">Listening</button>
+    <button type="button" data-set="thinking" aria-pressed="false">Thinking</button>
+    <button type="button" data-set="speaking" aria-pressed="false">Speaking</button>
+    <button type="button" data-set="working_on_computer" aria-pressed="false">Working</button>
+    <button type="button" data-set="waiting_for_you" aria-pressed="false">Waiting</button>
+    <button type="button" data-set="needs_your_hands" aria-pressed="false">Needs you</button>
+    <button type="button" data-set="error" aria-pressed="false">Error</button>
+  </div>
+</nav>
+<script>
+/* PREVIEW ONLY — drop this script with the bar. It only flips data-state. */
+(function () {
+  document.body.classList.add("is-preview");
+  var copy = {
+    asleep: ["Asleep", "Say Uhlexa", ""],
+    idle: ["Ready", "Ready when you are", ""],
+    listening: ["Listening", "Cleats for Max, under seventy.", ""],
+    thinking: ["Thinking", "One moment\u2026", ""],
+    speaking: ["Speaking", "I found a pair for forty-two dollars.", ""],
+    working_on_computer: ["Working", "Working on the family computer", "Opening the store."],
+    waiting_for_you: ["Waiting for you", "Waiting for your OK", "Soccer cleats for Max"],
+    needs_your_hands: ["Needs you", "I need you to take over", "The store wants a sign-in."],
+    error: ["Error", "Voice is offline", "The microphone is blocked. Allow it, then try again."]
+  };
+  document.getElementById("preview-bar").addEventListener("click", function (ev) {
+    var b = ev.target.closest("button[data-set]");
+    if (!b) return;
+    var s = b.getAttribute("data-set");
+    var meta = copy[s];
+    document.body.setAttribute("data-state", s);
+    var pill = document.getElementById("state-pill");
+    var ring = document.getElementById("ring");
+    pill.setAttribute("data-state", s);
+    ring.setAttribute("data-state", s);
+    pill.textContent = meta[0];
+    document.getElementById("state-caption").textContent = meta[1];
+    document.getElementById("state-detail").textContent = meta[2];
+    ring.style.setProperty("--lvl", (s === "speaking" || s === "listening") ? "0.8" : "0.32");
+    var buttons = document.querySelectorAll("#preview-bar button[data-set]");
+    for (var i = 0; i < buttons.length; i++) buttons[i].setAttribute("aria-pressed", buttons[i] === b ? "true" : "false");
+  });
+})();
+</script>
+
+<div class="phone">
+  <header class="phone-top">
+    <span class="brand"><span class="brand-mark" aria-hidden="true"></span>Uhlexa</span>
+    <span class="right">
+      <span id="state-pill" class="pill" data-state="asleep">Asleep</span>
+      <button id="settings-btn" type="button" class="icon-btn" aria-label="Settings">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="3"></circle><path d="M19.4 15a1.7 1.7 0 0 0 .3 1.8l.1.1a2 2 0 1 1-2.8 2.8l-.1-.1a1.7 1.7 0 0 0-1.8-.3 1.7 1.7 0 0 0-1 1.5V21a2 2 0 1 1-4 0v-.1a1.7 1.7 0 0 0-1.1-1.5 1.7 1.7 0 0 0-1.8.3l-.1.1a2 2 0 1 1-2.8-2.8l.1-.1a1.7 1.7 0 0 0 .3-1.8 1.7 1.7 0 0 0-1.5-1H3a2 2 0 1 1 0-4h.1a1.7 1.7 0 0 0 1.5-1.1 1.7 1.7 0 0 0-.3-1.8l-.1-.1a2 2 0 1 1 2.8-2.8l.1.1a1.7 1.7 0 0 0 1.8.3h0a1.7 1.7 0 0 0 1-1.5V3a2 2 0 1 1 4 0v.1a1.7 1.7 0 0 0 1 1.5h0a1.7 1.7 0 0 0 1.8-.3l.1-.1a2 2 0 1 1 2.8 2.8l-.1.1a1.7 1.7 0 0 0-.3 1.8v0a1.7 1.7 0 0 0 1.5 1H21a2 2 0 1 1 0 4h-.1a1.7 1.7 0 0 0-1.5 1z"></path></svg>
+      </button>
+    </span>
+  </header>
+
+  <div class="statusline" aria-label="Status">
+    <p id="state-caption" class="state-caption" role="status">Say Uhlexa</p>
+    <p id="state-detail" class="state-detail"></p>
+  </div>
+
+  <div id="ring" class="ring" data-state="asleep" hidden>
+    <span class="ring-glow"></span><span class="ring-arc"></span><span class="ring-core"></span>
+  </div>
+
+  <div id="tray" class="tray" aria-label="Needs you" hidden>
+    <div id="approvals">
+      <article class="card approval is-pending" data-id="apr-demo">
+        <div class="card-head">
+          <h3 class="card-title">Soccer cleats for Max</h3>
+          <span class="chip chip-amber">Needs your OK</span>
+        </div>
+        <p class="card-meta">$42.00</p>
+        <ul class="item-list">
+          <li>Size 3, black</li>
+          <li>Saturday pickup at the park</li>
+        </ul>
+        <p class="card-meta">Will use the family computer</p>
+        <p class="card-note">Max asked after practice. Under the seventy-dollar cap you set.</p>
+        <p class="card-meta">For Max Parker</p>
+        <div class="card-actions">
+          <button type="button" class="btn btn-primary">Approve</button>
+          <button type="button" class="btn btn-ghost">Deny</button>
+        </div>
+        <p class="card-error" role="alert" hidden>Could not save that decision.</p>
+      </article>
+    </div>
+    <div id="browser">
+      <article class="card browser status-running" data-id="bt-demo">
+        <div class="card-head">
+          <h3 class="card-title">Family computer</h3>
+          <div class="chip-row">
+            <span class="chip chip-violet">Working</span>
+          </div>
+        </div>
+        <p class="card-meta url">https://shop.example/cleats/size-3</p>
+        <img class="shot" alt="Latest screenshot from the family computer" src="data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A//www.w3.org/2000/svg%22%20width%3D%22640%22%20height%3D%22360%22%20viewBox%3D%220%200%20640%20360%22%3E%3Crect%20width%3D%22640%22%20height%3D%22360%22%20fill%3D%22%23181e1a%22/%3E%3Crect%20x%3D%2228%22%20y%3D%2228%22%20width%3D%22220%22%20height%3D%22220%22%20rx%3D%2218%22%20fill%3D%22%23dff25a%22/%3E%3Ccircle%20cx%3D%22138%22%20cy%3D%22118%22%20r%3D%2234%22%20fill%3D%22%23181e1a%22/%3E%3Crect%20x%3D%2286%22%20y%3D%22168%22%20width%3D%22104%22%20height%3D%2244%22%20rx%3D%226%22%20fill%3D%22%23181e1a%22/%3E%3Crect%20x%3D%22276%22%20y%3D%2244%22%20width%3D%22280%22%20height%3D%2216%22%20rx%3D%223%22%20fill%3D%22%23f4f1ea%22/%3E%3Crect%20x%3D%22276%22%20y%3D%2274%22%20width%3D%22160%22%20height%3D%2210%22%20rx%3D%223%22%20fill%3D%22%23dff25a%22/%3E%3Crect%20x%3D%22276%22%20y%3D%22112%22%20width%3D%22320%22%20height%3D%228%22%20rx%3D%222%22%20fill%3D%22%23f4f1ea%22%20opacity%3D%22.25%22/%3E%3Crect%20x%3D%22276%22%20y%3D%22130%22%20width%3D%22250%22%20height%3D%228%22%20rx%3D%222%22%20fill%3D%22%23f4f1ea%22%20opacity%3D%22.25%22/%3E%3Ctext%20x%3D%22276%22%20y%3D%22196%22%20font-family%3D%22Georgia%2Cserif%22%20font-size%3D%2236%22%20fill%3D%22%23f4f1ea%22%3E%2442.00%3C/text%3E%3Ctext%20x%3D%22276%22%20y%3D%22230%22%20font-family%3D%22Georgia%2Cserif%22%20font-size%3D%2216%22%20fill%3D%22%23f4f1ea%22%3ESize%203%2C%20in%20stock%3C/text%3E%3C/svg%3E">
+        <ol class="steps">
+          <li class="is-ok">open: Store search for size 3 cleats</li>
+          <li class="is-ok">find: Pair at $42, in stock</li>
+          <li class="is-bad">cart: Waiting — purchase needs your OK</li>
+        </ol>
+        <div class="card-actions">
+          <a class="btn btn-amber" href="#tray">Take over</a>
+        </div>
+      </article>
+    </div>
+  </div>
+
+  <div class="phone-body">
+    <section id="pre" class="panel pre" aria-label="Start">
+      <label for="user-select">Who is this?</label>
+      <select id="user-select">
+        <option value="alex" selected>Alex Parker (guardian)</option>
+        <option value="jordan">Jordan Parker (adult)</option>
+        <option value="max">Max Parker (child)</option>
+      </select>
+      <button id="start-btn" type="button" class="btn btn-primary btn-lg" disabled>Start</button>
+      <button id="novoice-btn" type="button" class="btn btn-ghost" hidden>Continue without voice</button>
+      <p id="status-note" class="note" hidden>Voice is offline: the worker is not running.</p>
+    </section>
+    <div id="chat" class="chat" aria-live="polite" aria-relevant="additions" aria-label="Conversation">
+      <div class="cap cap-heard bubble">
+        <span class="cap-label sr-only">You said</span>
+        <span class="cap-text">Uhlexa, order those soccer cleats for Max if they're under seventy dollars.</span>
+      </div>
+      <div class="cap cap-said bubble">
+        <span class="cap-label sr-only">Uhlexa said</span>
+        <span class="cap-text">I found a pair at forty-two dollars. I need your OK before I buy them.</span>
+      </div>
+      <div class="cap cap-said bubble interim" aria-hidden="true">
+        <span class="cap-label sr-only">Uhlexa said</span>
+        <span class="cap-text">Opening the family computer…</span>
+      </div>
+    </div>
+    <p id="start-error" class="error" role="alert" hidden>The microphone is blocked. Allow it in your browser to talk to Uhlexa.</p>
+  </div>
+
+  <footer id="live" class="composer" hidden>
+    <button id="mic-btn" type="button" class="mic voice-only" aria-pressed="false"><span class="mic-dot" aria-hidden="true"></span><span class="mic-label">Mic muted</span></button>
+    <button id="talk-btn" type="button" class="mic-big voice-only" aria-label="Tap to talk">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="9" y="2" width="6" height="12" rx="3"></rect><path d="M5 11a7 7 0 0 0 14 0"></path><path d="M12 18v4"></path></svg>
+    </button>
+    <button id="audio-btn" type="button" class="btn btn-ghost" hidden>Enable sound</button>
+    <button id="leave-btn" type="button" class="btn btn-ghost">Leave</button>
+  </footer>
+</div>
+
+<dialog id="sheet" class="sheet" aria-labelledby="sheet-title">
+  <h2 id="sheet-title">Settings</h2>
+  <p id="who" class="note">Signed in as Alex Parker</p>
+  <div class="voice-only">
+    <h3>How Uhlexa wakes up</h3>
+    <div id="mode-toggle" class="seg stack" role="radiogroup" aria-label="How Uhlexa wakes up">
+      <button type="button" role="radio" class="seg-btn" aria-checked="false" data-mode="wake_word">Say Uhlexa every time</button>
+      <button type="button" role="radio" class="seg-btn is-on" aria-checked="true" data-mode="follow_up">Follow-up (default)</button>
+      <button type="button" role="radio" class="seg-btn" aria-checked="false" data-mode="always">Always listening</button>
+    </div>
+  </div>
+  <button id="sheet-close" type="button" class="btn btn-primary">Done</button>
+</dialog>
+
+</body>
+</html>
